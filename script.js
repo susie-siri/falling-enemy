@@ -19,9 +19,9 @@ const endScreen = document.getElementById("endScreen");
 const endMessage = document.getElementById("endMessage");
 const restartBtn = document.getElementById("restartBtn");
 const backBtn = document.getElementById("backBtn");
+const resumeBtn = document.getElementById("resumeBtn");
 const selectedText = document.getElementById("selectedCharacter");
 
-// MOBILE BUTTONS
 const leftBtn = document.getElementById("leftBtn");
 const rightBtn = document.getElementById("rightBtn");
 const shootBtn = document.getElementById("shootBtn");
@@ -34,17 +34,24 @@ let hearts = 3;
 let score = 0;
 let enemyHealth = 100;
 let gameOver = false;
+let paused = false;
 let canShoot = true;
 let enemyDir = 1;
+let enemySpeed = 2;
+
+let enemyMoveInterval;
+let enemyShootInterval;
 
 // ======================
-// START GAME
+// START / RESET GAME
 // ======================
 function startGame() {
   gameOver = false;
+  paused = false;
   hearts = 3;
   score = 0;
   enemyHealth = 100;
+  enemySpeed = 2;
 
   playerX = 135;
   player.style.left = playerX + "px";
@@ -55,8 +62,14 @@ function startGame() {
 
   endScreen.classList.add("hidden");
 
+  clearIntervals();
   moveEnemy();
   enemyShootLoop();
+}
+
+function clearIntervals() {
+  clearInterval(enemyMoveInterval);
+  clearInterval(enemyShootInterval);
 }
 
 // ======================
@@ -78,35 +91,34 @@ cards.forEach(card => {
 });
 
 // ======================
-// PLAYER MOVEMENT
+// PLAYER MOVE
 // ======================
 function moveLeft() {
-  if (gameOver) return;
+  if (gameOver || paused) return;
   playerX -= 20;
   playerX = Math.max(0, Math.min(270, playerX));
   player.style.left = playerX + "px";
 }
 
 function moveRight() {
-  if (gameOver) return;
+  if (gameOver || paused) return;
   playerX += 20;
   playerX = Math.max(0, Math.min(270, playerX));
   player.style.left = playerX + "px";
 }
 
 // ======================
-// KEYBOARD CONTROLS (LAPTOP)
+// KEYBOARD
 // ======================
 document.addEventListener("keydown", e => {
-  if (gameOver) return;
-
   if (e.key === "ArrowLeft") moveLeft();
   if (e.key === "ArrowRight") moveRight();
-  if (e.key === " " && canShoot) shoot();
+  if (e.key === " " && canShoot && !paused) shoot();
+  if (e.key === "Escape") pauseGame();
 });
 
 // ======================
-// MOBILE CONTROLS (TOUCH)
+// MOBILE CONTROLS
 // ======================
 leftBtn?.addEventListener("touchstart", e => {
   e.preventDefault();
@@ -120,11 +132,11 @@ rightBtn?.addEventListener("touchstart", e => {
 
 shootBtn?.addEventListener("touchstart", e => {
   e.preventDefault();
-  if (canShoot) shoot();
+  if (canShoot && !paused) shoot();
 });
 
 // ======================
-// PLAYER SHOOT
+// SHOOT
 // ======================
 function shoot() {
   canShoot = false;
@@ -135,21 +147,28 @@ function shoot() {
   bullet.style.top = "330px";
   gameArea.appendChild(bullet);
 
-  const interval = setInterval(() => {
+  const move = setInterval(() => {
+    if (paused) return;
+
     bullet.style.top = bullet.offsetTop - 8 + "px";
 
     if (checkCollision(bullet, enemy)) {
       enemyHealth -= 20;
+      score += 10;
+      enemySpeed += 0.3;
+
+      scoreEl.textContent = "Score: " + score;
       enemyHealthBar.style.width = enemyHealth + "%";
+
       bullet.remove();
-      clearInterval(interval);
+      clearInterval(move);
 
       if (enemyHealth <= 0) winGame();
     }
 
     if (bullet.offsetTop < 0) {
       bullet.remove();
-      clearInterval(interval);
+      clearInterval(move);
     }
   }, 30);
 
@@ -157,13 +176,13 @@ function shoot() {
 }
 
 // ======================
-// ENEMY MOVEMENT
+// ENEMY MOVE
 // ======================
 function moveEnemy() {
-  const interval = setInterval(() => {
-    if (gameOver) return clearInterval(interval);
+  enemyMoveInterval = setInterval(() => {
+    if (gameOver || paused) return;
 
-    let x = enemy.offsetLeft + enemyDir * 2;
+    let x = enemy.offsetLeft + enemyDir * enemySpeed;
     if (x <= 0 || x >= 260) enemyDir *= -1;
     enemy.style.left = x + "px";
   }, 20);
@@ -173,8 +192,8 @@ function moveEnemy() {
 // ENEMY SHOOT
 // ======================
 function enemyShootLoop() {
-  const interval = setInterval(() => {
-    if (gameOver) return clearInterval(interval);
+  enemyShootInterval = setInterval(() => {
+    if (gameOver || paused) return;
 
     const bullet = document.createElement("div");
     bullet.className = "enemy-bullet";
@@ -183,6 +202,8 @@ function enemyShootLoop() {
     gameArea.appendChild(bullet);
 
     const move = setInterval(() => {
+      if (paused) return;
+
       bullet.style.top = bullet.offsetTop + 6 + "px";
 
       if (checkCollision(bullet, player)) {
@@ -208,7 +229,6 @@ function enemyShootLoop() {
 function checkCollision(a, b) {
   const r1 = a.getBoundingClientRect();
   const r2 = b.getBoundingClientRect();
-
   return (
     r1.left < r2.right &&
     r1.right > r2.left &&
@@ -218,12 +238,16 @@ function checkCollision(a, b) {
 }
 
 // ======================
-// END STATES
+// PAUSE / END
 // ======================
+function pauseGame() {
+  paused = true;
+  endMessage.textContent = "PAUSED ⏸️";
+  endScreen.classList.remove("hidden");
+}
+
 function winGame() {
   gameOver = true;
-  score++;
-  scoreEl.textContent = "Score: " + score;
   endMessage.textContent = "YOU WIN 🎉";
   endScreen.classList.remove("hidden");
 }
@@ -237,5 +261,15 @@ function loseGame() {
 // ======================
 // BUTTONS
 // ======================
+resumeBtn.onclick = () => {
+  paused = false;
+  endScreen.classList.add("hidden");
+};
+
 restartBtn.onclick = startGame;
-backBtn.onclick = () => location.reload();
+
+backBtn.onclick = () => {
+  clearIntervals();
+  game.classList.add("hidden");
+  home.classList.remove("hidden");
+};
