@@ -1,3 +1,6 @@
+/* ======================
+   GLOBAL
+====================== */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -6,16 +9,23 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  touch-action: manipulation;
+  overscroll-behavior: none;
 }
 
 .hidden {
   display: none;
 }
 
-.home, .characters, .game {
+.home,
+.characters,
+.game {
   text-align: center;
 }
 
+/* ======================
+   BUTTONS
+====================== */
 button {
   padding: 12px 30px;
   font-size: 1.2rem;
@@ -25,17 +35,28 @@ button {
   background: #ffcc00;
 }
 
+button:active {
+  transform: scale(0.95);
+}
+
+/* ======================
+   CHARACTER SELECTION
+====================== */
 .cards img {
   width: 100px;
   margin: 10px;
   cursor: pointer;
   border-radius: 12px;
+  transition: transform 0.2s;
 }
 
 .cards img:hover {
   transform: scale(1.1);
 }
 
+/* ======================
+   GAME AREA
+====================== */
 .game-area {
   width: 320px;
   height: 420px;
@@ -44,8 +65,12 @@ button {
   margin: 10px auto;
   position: relative;
   overflow: hidden;
+  border-radius: 10px;
 }
 
+/* ======================
+   PLAYER & ENEMY
+====================== */
 #player {
   width: 50px;
   position: absolute;
@@ -60,11 +85,15 @@ button {
   left: 130px;
 }
 
+/* ======================
+   BULLETS
+====================== */
 .bullet {
   width: 6px;
   height: 20px;
   background: yellow;
   position: absolute;
+  border-radius: 3px;
 }
 
 .enemy-bullet {
@@ -72,28 +101,42 @@ button {
   height: 20px;
   background: red;
   position: absolute;
+  border-radius: 3px;
 }
 
+/* ======================
+   HUD
+====================== */
 .hud {
   display: flex;
   justify-content: space-between;
   width: 320px;
   margin: auto;
+  font-size: 1.1rem;
 }
 
+/* ======================
+   ENEMY HEALTH
+====================== */
 .enemy-health {
   width: 320px;
   height: 15px;
   background: #ccc;
   margin: 5px auto;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 #enemyHealthBar {
   height: 100%;
   width: 100%;
   background: red;
+  transition: width 0.2s ease;
 }
 
+/* ======================
+   END SCREEN
+====================== */
 #endScreen {
   position: absolute;
   background: white;
@@ -102,4 +145,45 @@ button {
   top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+/* ======================
+   MOBILE CONTROLS
+====================== */
+.mobile-controls {
+  display: none;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.mobile-controls button {
+  font-size: 1.6rem;
+  padding: 15px 20px;
+  border-radius: 14px;
+}
+
+/* ======================
+   RESPONSIVE (MOBILE)
+====================== */
+@media (max-width: 768px) {
+  body {
+    height: auto;
+    padding: 10px;
+  }
+
+  .game-area {
+    width: 95vw;
+    height: 60vh;
+  }
+
+  .hud,
+  .enemy-health {
+    width: 95vw;
+  }
+
+  .mobile-controls {
+    display: flex;
+  }
 }

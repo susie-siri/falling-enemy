@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Falling Enemy</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -18,11 +19,10 @@
   <h2>Choose Your Character</h2>
   <div class="cards">
     <img src="images/duck.png" class="card" data-name="Duck Wing">
-<img src="images/fan.png" class="card" data-name="Fan Man">
-<img src="images/fire.png" class="card" data-name="Fire House">
-<img src="images/nan.png" class="card" data-name="Nan Man">
-<img src="images/joshy.png" class="card" data-name="Joshy Boy">
-
+    <img src="images/fan.png" class="card" data-name="Fan Man">
+    <img src="images/fire.png" class="card" data-name="Fire House">
+    <img src="images/nan.png" class="card" data-name="Nan Man">
+    <img src="images/joshy.png" class="card" data-name="Joshy Boy">
   </div>
 </div>
 
@@ -40,11 +40,18 @@
   </div>
 
   <div class="game-area">
-    <img id="player">
-    <img id="enemy" src="images/enemy.png">
-
+    <img id="player" alt="player">
+    <img id="enemy" src="images/enemy.png" alt="enemy">
   </div>
 
+  <!-- 📱 MOBILE CONTROLS -->
+  <div class="mobile-controls">
+    <button id="leftBtn">⬅️</button>
+    <button id="shootBtn">🔫</button>
+    <button id="rightBtn">➡️</button>
+  </div>
+
+  <!-- END SCREEN -->
   <div id="endScreen" class="hidden">
     <h2 id="endMessage"></h2>
     <button id="restartBtn">Restart</button>
