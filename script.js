@@ -1,256 +1,128 @@
-// ================= ELEMENTS =================
-const playBtn = document.getElementById("playBtn");
-const home = document.querySelector(".home");
-const characters = document.querySelector(".characters");
-const game = document.querySelector(".game");
-const cards = document.querySelectorAll(".card");
+document.addEventListener("DOMContentLoaded", () => {
 
-const player = document.getElementById("player");
-const enemy = document.getElementById("enemy");
-const gameArea = document.querySelector(".game-area");
+  const screens = document.querySelectorAll(".screen");
+  const home = document.querySelector(".home");
+  const characters = document.querySelector(".characters");
+  const themes = document.querySelector(".themes");
+  const game = document.querySelector(".game");
 
-const heartsEl = document.getElementById("hearts");
-const scoreEl = document.getElementById("score");
-const enemyHealthBar = document.getElementById("enemyHealthBar");
+  const playBtn = document.getElementById("playBtn");
+  const cards = document.querySelectorAll(".card");
+  const themeBtns = document.querySelectorAll(".themeBtn");
 
-const pauseBtn = document.getElementById("pauseBtn");
-const pauseMenu = document.getElementById("pauseMenu");
-const resumeBtn = document.getElementById("resumeBtn");
-const charBackBtn = document.getElementById("charBackBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
+  const pauseMenu = document.getElementById("pauseMenu");
+  const resumeBtn = document.getElementById("resumeBtn");
+  const backBtn = document.getElementById("backBtn");
 
-const endMenu = document.getElementById("endMenu");
-const endMessage = document.getElementById("endMessage");
-const restartBtn = document.getElementById("restartBtn");
-const homeBtn = document.getElementById("homeBtn");
+  const endMenu = document.getElementById("endMenu");
+  const endText = document.getElementById("endText");
+  const restartBtn = document.getElementById("restartBtn");
 
-const selectedText = document.getElementById("selectedCharacter");
+  const gameArea = document.querySelector(".game-area");
+  const player = document.getElementById("player");
+  const enemy = document.getElementById("enemy");
+  const goal = document.getElementById("goal");
 
-// ================= GAME STATE =================
-let playerX = 0;
-let hearts = 3;
-let score = 0;
-let enemyHealth = 100;
-let enemyDir = 1;
-let enemySpeed = 2;
+  let x = 20, y = 360;
+  let paused = false;
+  let gameOver = false;
+  let dir = 1;
+  let enemyLoop;
 
-let paused = false;
-let gameOver = false;
-let canShoot = true;
-
-let enemyMoveInterval;
-let enemyShootInterval;
-
-// ================= START GAME =================
-function startGame() {
-  hearts = 3;
-  score = 0;
-  enemyHealth = 100;
-  enemySpeed = 2;
-  enemyDir = 1;
-
-  paused = false;
-  gameOver = false;
-
-  heartsEl.textContent = "❤️❤️❤️";
-  scoreEl.textContent = "Score: 0";
-  enemyHealthBar.style.width = "100%";
-
-  pauseMenu.classList.add("hidden");
-  endMenu.classList.add("hidden");
-
-  playerX = (gameArea.clientWidth - player.offsetWidth) / 2;
-  player.style.left = playerX + "px";
-
-  clearIntervals();
-  moveEnemy();
-  enemyShoot();
-}
-
-// ================= CLEAR INTERVALS =================
-function clearIntervals() {
-  clearInterval(enemyMoveInterval);
-  clearInterval(enemyShootInterval);
-}
-
-// ================= NAVIGATION =================
-playBtn.onclick = () => {
-  home.classList.add("hidden");
-  characters.classList.remove("hidden");
-};
-
-cards.forEach(card => {
-  card.onclick = () => {
-    characters.classList.add("hidden");
-    game.classList.remove("hidden");
-    player.src = card.src;
-    selectedText.textContent = "You chose: " + card.dataset.name;
-    startGame();
-  };
-});
-
-// ================= PLAYER MOVE =================
-function movePlayer(dx) {
-  if (paused || gameOver) return;
-
-  const gameWidth = gameArea.clientWidth;
-  const playerWidth = player.offsetWidth;
-
-  playerX += dx;
-
-  if (playerX <= 0) playerX = 0;
-  if (playerX >= gameWidth - playerWidth) {
-    playerX = gameWidth - playerWidth;
+  function show(screen) {
+    screens.forEach(s => s.classList.add("hidden"));
+    screen.classList.remove("hidden");
   }
 
-  player.style.left = playerX + "px";
-}
+  playBtn.onclick = () => show(characters);
 
+  cards.forEach(card => {
+    card.onclick = () => {
+      player.src = card.src;
+      show(themes);
+    };
+  });
 
-// ================= KEYBOARD =================
-document.addEventListener("keydown", e => {
-  if (e.key === "ArrowLeft") movePlayer(-20);
-  if (e.key === "ArrowRight") movePlayer(20);
-  if (e.key === " " && canShoot && !paused) shoot();
-  if (e.key === "Escape") pauseGame();
+  themeBtns.forEach(btn => {
+    btn.onclick = () => {
+      gameArea.classList.remove("tech","forest","dungeon","space");
+      gameArea.classList.add(btn.dataset.theme);
+      show(game);
+      start();
+    };
+  });
+
+  function start() {
+    paused = false;
+    gameOver = false;
+    pauseMenu.classList.add("hidden");
+    endMenu.classList.add("hidden");
+
+    x = 20; y = 360;
+    player.style.left = x + "px";
+    player.style.top = y + "px";
+
+    enemy.style.left = "200px";
+    enemy.style.top = "60px";
+
+    clearInterval(enemyLoop);
+    enemyLoop = setInterval(moveEnemy, 20);
+  }
+
+  function moveEnemy() {
+    if (paused || gameOver) return;
+    let ex = enemy.offsetLeft + dir * 2;
+    if (ex <= 0 || ex >= 285) dir *= -1;
+    enemy.style.left = ex + "px";
+  }
+
+  document.addEventListener("keydown", e => {
+    if (paused || gameOver) return;
+    if (e.key === "ArrowLeft") x -= 10;
+    if (e.key === "ArrowRight") x += 10;
+    if (e.key === "ArrowUp") y -= 10;
+    if (e.key === "ArrowDown") y += 10;
+
+    x = Math.max(0, Math.min(280, x));
+    y = Math.max(0, Math.min(380, y));
+
+    player.style.left = x + "px";
+    player.style.top = y + "px";
+
+    if (hit(player, goal)) end("YOU ESCAPED 🎉");
+    if (hit(player, enemy)) end("ENEMY GOT YOU 💀");
+  });
+
+  function hit(a, b) {
+    return (
+      a.offsetLeft < b.offsetLeft + b.offsetWidth &&
+      a.offsetLeft + a.offsetWidth > b.offsetLeft &&
+      a.offsetTop < b.offsetTop + b.offsetHeight &&
+      a.offsetTop + a.offsetHeight > b.offsetTop
+    );
+  }
+
+  function end(text) {
+    gameOver = true;
+    endText.textContent = text;
+    endMenu.classList.remove("hidden");
+  }
+
+  pauseBtn.onclick = () => {
+    paused = true;
+    pauseMenu.classList.remove("hidden");
+  };
+
+  resumeBtn.onclick = () => {
+    paused = false;
+    pauseMenu.classList.add("hidden");
+  };
+
+  backBtn.onclick = () => {
+    clearInterval(enemyLoop);
+    show(characters);
+  };
+
+  restartBtn.onclick = start;
 });
-
-// ================= SHOOT =================
-function shoot() {
-  canShoot = false;
-
-  const bullet = document.createElement("div");
-  bullet.className = "bullet";
-  bullet.style.left = playerX + player.offsetWidth / 2 - 3 + "px";
-  bullet.style.top = "330px";
-  gameArea.appendChild(bullet);
-
-  const move = setInterval(() => {
-    if (paused) return;
-
-    bullet.style.top = bullet.offsetTop - 8 + "px";
-
-    if (collision(bullet, enemy)) {
-      enemyHealth -= 20;
-      score += 10;
-      enemySpeed += 0.3;
-
-      scoreEl.textContent = "Score: " + score;
-      enemyHealthBar.style.width = enemyHealth + "%";
-
-      bullet.remove();
-      clearInterval(move);
-
-      if (enemyHealth <= 0) endGame("YOU WIN 🎉");
-    }
-
-    if (bullet.offsetTop < 0) {
-      bullet.remove();
-      clearInterval(move);
-    }
-  }, 30);
-
-  setTimeout(() => (canShoot = true), 300);
-}
-
-// ================= ENEMY MOVE =================
-function moveEnemy() {
-  enemyMoveInterval = setInterval(() => {
-    if (paused || gameOver) return;
-
-    const gameWidth = gameArea.clientWidth;
-    const enemyWidth = enemy.offsetWidth;
-
-    let x = enemy.offsetLeft + enemyDir * enemySpeed;
-
-    // LEFT EDGE
-    if (x <= 0) {
-      x = 0;
-      enemyDir = 1;
-    }
-
-    // RIGHT EDGE
-    if (x >= gameWidth - enemyWidth) {
-      x = gameWidth - enemyWidth;
-      enemyDir = -1;
-    }
-
-    enemy.style.left = x + "px";
-  }, 20);
-}
-
-
-// ================= ENEMY SHOOT =================
-function enemyShoot() {
-  enemyShootInterval = setInterval(() => {
-    if (paused || gameOver) return;
-
-    const bullet = document.createElement("div");
-    bullet.className = "enemy-bullet";
-    bullet.style.left = enemy.offsetLeft + enemy.offsetWidth / 2 - 3 + "px";
-    bullet.style.top = enemy.offsetTop + enemy.offsetHeight + "px";
-    gameArea.appendChild(bullet);
-
-    const move = setInterval(() => {
-      if (paused) return;
-
-      bullet.style.top = bullet.offsetTop + 6 + "px";
-
-      if (collision(bullet, player)) {
-        hearts--;
-        heartsEl.textContent = "❤️".repeat(hearts);
-        bullet.remove();
-        clearInterval(move);
-
-        if (hearts <= 0) endGame("GAME OVER 💀");
-      }
-
-      if (bullet.offsetTop > gameArea.clientHeight) {
-        bullet.remove();
-        clearInterval(move);
-      }
-    }, 30);
-  }, 1200);
-}
-
-// ================= COLLISION =================
-function collision(a, b) {
-  const r1 = a.getBoundingClientRect();
-  const r2 = b.getBoundingClientRect();
-  return (
-    r1.left < r2.right &&
-    r1.right > r2.left &&
-    r1.top < r2.bottom &&
-    r1.bottom > r2.top
-  );
-}
-
-// ================= PAUSE / END =================
-function pauseGame() {
-  if (gameOver) return;
-  paused = true;
-  pauseMenu.classList.remove("hidden");
-}
-
-function endGame(text) {
-  gameOver = true;
-  endMessage.textContent = text;
-  endMenu.classList.remove("hidden");
-}
-
-// ================= BUTTONS =================
-pauseBtn.onclick = pauseGame;
-
-resumeBtn.onclick = () => {
-  paused = false;
-  pauseMenu.classList.add("hidden");
-};
-
-charBackBtn.onclick = () => {
-  paused = false;
-  game.classList.add("hidden");
-  characters.classList.remove("hidden");
-};
-
-restartBtn.onclick = startGame;
-
-homeBtn.onclick = () => location.reload();
