@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Falling Enemy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- HOME -->
+<div class="home">
+  <h1>Falling Enemy</h1>
+  <button id="playBtn">PLAY</button>
+</div>
+
+<!-- CHARACTER SELECTION -->
+<div class="characters hidden">
+  <h2>Choose Your Character</h2>
+  <div class="cards">
+    <img src="images/duck.png" class="card" data-name="Duck Wing">
+<img src="images/fan.png" class="card" data-name="Fan Man">
+<img src="images/fire.png" class="card" data-name="Fire House">
+<img src="images/nan.png" class="card" data-name="Nan Man">
+<img src="images/joshy.png" class="card" data-name="Joshy Boy">
+
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="game hidden">
+  <p id="selectedCharacter"></p>
+
+  <div class="hud">
+    <div id="hearts">❤️❤️❤️</div>
+    <div id="score">Score: 0</div>
+  </div>
+
+  <div class="enemy-health">
+    <div id="enemyHealthBar"></div>
+  </div>
+
+  <div class="game-area">
+    <img id="player">
+    <img id="enemy" src="images/enemy.png">
+
+  </div>
+
+  <div id="endScreen" class="hidden">
+    <h2 id="endMessage"></h2>
+    <button id="restartBtn">Restart</button>
+    <button id="backBtn">Back</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

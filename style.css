@@ -1,0 +1,105 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #87ceeb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.hidden {
+  display: none;
+}
+
+.home, .characters, .game {
+  text-align: center;
+}
+
+button {
+  padding: 12px 30px;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  background: #ffcc00;
+}
+
+.cards img {
+  width: 100px;
+  margin: 10px;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.cards img:hover {
+  transform: scale(1.1);
+}
+
+.game-area {
+  width: 320px;
+  height: 420px;
+  background: #e0f7ff;
+  border: 3px solid #333;
+  margin: 10px auto;
+  position: relative;
+  overflow: hidden;
+}
+
+#player {
+  width: 50px;
+  position: absolute;
+  bottom: 10px;
+  left: 135px;
+}
+
+#enemy {
+  width: 60px;
+  position: absolute;
+  top: 20px;
+  left: 130px;
+}
+
+.bullet {
+  width: 6px;
+  height: 20px;
+  background: yellow;
+  position: absolute;
+}
+
+.enemy-bullet {
+  width: 6px;
+  height: 20px;
+  background: red;
+  position: absolute;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  width: 320px;
+  margin: auto;
+}
+
+.enemy-health {
+  width: 320px;
+  height: 15px;
+  background: #ccc;
+  margin: 5px auto;
+}
+
+#enemyHealthBar {
+  height: 100%;
+  width: 100%;
+  background: red;
+}
+
+#endScreen {
+  position: absolute;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
