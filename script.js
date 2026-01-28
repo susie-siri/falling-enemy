@@ -1,6 +1,3 @@
-// ======================
-// ELEMENTS
-// ======================
 const playBtn = document.getElementById("playBtn");
 const home = document.querySelector(".home");
 const characters = document.querySelector(".characters");
@@ -15,43 +12,33 @@ const heartsEl = document.getElementById("hearts");
 const scoreEl = document.getElementById("score");
 const enemyHealthBar = document.getElementById("enemyHealthBar");
 
-const endScreen = document.getElementById("endScreen");
+const pauseMenu = document.getElementById("pauseMenu");
+const endMenu = document.getElementById("endMenu");
 const endMessage = document.getElementById("endMessage");
-const restartBtn = document.getElementById("restartBtn");
-const backBtn = document.getElementById("backBtn");
+
 const resumeBtn = document.getElementById("resumeBtn");
+const charBackBtn = document.getElementById("charBackBtn");
+const restartBtn = document.getElementById("restartBtn");
+const homeBtn = document.getElementById("homeBtn");
 const selectedText = document.getElementById("selectedCharacter");
 
-const leftBtn = document.getElementById("leftBtn");
-const rightBtn = document.getElementById("rightBtn");
-const shootBtn = document.getElementById("shootBtn");
-
-// ======================
-// GAME STATE
-// ======================
 let playerX = 135;
-let hearts = 3;
-let score = 0;
-let enemyHealth = 100;
-let gameOver = false;
+let hearts, score, enemyHealth;
 let paused = false;
-let canShoot = true;
+let gameOver = false;
 let enemyDir = 1;
 let enemySpeed = 2;
+let canShoot = true;
 
-let enemyMoveInterval;
-let enemyShootInterval;
+let enemyMoveInt, enemyShootInt;
 
-// ======================
-// START / RESET GAME
-// ======================
 function startGame() {
-  gameOver = false;
-  paused = false;
   hearts = 3;
   score = 0;
   enemyHealth = 100;
   enemySpeed = 2;
+  paused = false;
+  gameOver = false;
 
   playerX = 135;
   player.style.left = playerX + "px";
@@ -60,21 +47,19 @@ function startGame() {
   scoreEl.textContent = "Score: 0";
   enemyHealthBar.style.width = "100%";
 
-  endScreen.classList.add("hidden");
+  pauseMenu.classList.add("hidden");
+  endMenu.classList.add("hidden");
 
   clearIntervals();
   moveEnemy();
-  enemyShootLoop();
+  enemyShoot();
 }
 
 function clearIntervals() {
-  clearInterval(enemyMoveInterval);
-  clearInterval(enemyShootInterval);
+  clearInterval(enemyMoveInt);
+  clearInterval(enemyShootInt);
 }
 
-// ======================
-// NAVIGATION
-// ======================
 playBtn.onclick = () => {
   home.classList.add("hidden");
   characters.classList.remove("hidden");
@@ -90,55 +75,21 @@ cards.forEach(card => {
   };
 });
 
-// ======================
-// PLAYER MOVE
-// ======================
-function moveLeft() {
-  if (gameOver || paused) return;
-  playerX -= 20;
-  playerX = Math.max(0, Math.min(270, playerX));
-  player.style.left = playerX + "px";
-}
-
-function moveRight() {
-  if (gameOver || paused) return;
-  playerX += 20;
-  playerX = Math.max(0, Math.min(270, playerX));
-  player.style.left = playerX + "px";
-}
-
-// ======================
-// KEYBOARD
-// ======================
 document.addEventListener("keydown", e => {
-  if (e.key === "ArrowLeft") moveLeft();
-  if (e.key === "ArrowRight") moveRight();
-  if (e.key === " " && canShoot && !paused) shoot();
-  if (e.key === "Escape") pauseGame();
+  if (e.key === "ArrowLeft") move(-20);
+  if (e.key === "ArrowRight") move(20);
+  if (e.key === " ") shoot();
+  if (e.key === "Escape") pause();
 });
 
-// ======================
-// MOBILE CONTROLS
-// ======================
-leftBtn?.addEventListener("touchstart", e => {
-  e.preventDefault();
-  moveLeft();
-});
+function move(dx) {
+  if (paused || gameOver) return;
+  playerX = Math.max(0, Math.min(270, playerX + dx));
+  player.style.left = playerX + "px";
+}
 
-rightBtn?.addEventListener("touchstart", e => {
-  e.preventDefault();
-  moveRight();
-});
-
-shootBtn?.addEventListener("touchstart", e => {
-  e.preventDefault();
-  if (canShoot && !paused) shoot();
-});
-
-// ======================
-// SHOOT
-// ======================
 function shoot() {
+  if (!canShoot || paused || gameOver) return;
   canShoot = false;
 
   const bullet = document.createElement("div");
@@ -147,128 +98,108 @@ function shoot() {
   bullet.style.top = "330px";
   gameArea.appendChild(bullet);
 
-  const move = setInterval(() => {
+  const loop = setInterval(() => {
     if (paused) return;
-
     bullet.style.top = bullet.offsetTop - 8 + "px";
 
-    if (checkCollision(bullet, enemy)) {
+    if (hit(bullet, enemy)) {
       enemyHealth -= 20;
       score += 10;
       enemySpeed += 0.3;
-
       scoreEl.textContent = "Score: " + score;
       enemyHealthBar.style.width = enemyHealth + "%";
-
       bullet.remove();
-      clearInterval(move);
-
-      if (enemyHealth <= 0) winGame();
+      clearInterval(loop);
+      if (enemyHealth <= 0) win();
     }
 
     if (bullet.offsetTop < 0) {
       bullet.remove();
-      clearInterval(move);
+      clearInterval(loop);
     }
   }, 30);
 
-  setTimeout(() => (canShoot = true), 300);
+  setTimeout(() => canShoot = true, 300);
 }
 
-// ======================
-// ENEMY MOVE
-// ======================
 function moveEnemy() {
-  enemyMoveInterval = setInterval(() => {
-    if (gameOver || paused) return;
-
+  enemyMoveInt = setInterval(() => {
+    if (paused || gameOver) return;
     let x = enemy.offsetLeft + enemyDir * enemySpeed;
     if (x <= 0 || x >= 260) enemyDir *= -1;
     enemy.style.left = x + "px";
   }, 20);
 }
 
-// ======================
-// ENEMY SHOOT
-// ======================
-function enemyShootLoop() {
-  enemyShootInterval = setInterval(() => {
-    if (gameOver || paused) return;
+function enemyShoot() {
+  enemyShootInt = setInterval(() => {
+    if (paused || gameOver) return;
 
-    const bullet = document.createElement("div");
-    bullet.className = "enemy-bullet";
-    bullet.style.left = enemy.offsetLeft + 28 + "px";
-    bullet.style.top = enemy.offsetTop + 60 + "px";
-    gameArea.appendChild(bullet);
+    const b = document.createElement("div");
+    b.className = "enemy-bullet";
+    b.style.left = enemy.offsetLeft + 28 + "px";
+    b.style.top = enemy.offsetTop + 60 + "px";
+    gameArea.appendChild(b);
 
-    const move = setInterval(() => {
+    const loop = setInterval(() => {
       if (paused) return;
+      b.style.top = b.offsetTop + 6 + "px";
 
-      bullet.style.top = bullet.offsetTop + 6 + "px";
-
-      if (checkCollision(bullet, player)) {
+      if (hit(b, player)) {
         hearts--;
         heartsEl.textContent = "❤️".repeat(hearts);
-        bullet.remove();
-        clearInterval(move);
-
-        if (hearts <= 0) loseGame();
+        b.remove();
+        clearInterval(loop);
+        if (hearts <= 0) lose();
       }
 
-      if (bullet.offsetTop > 420) {
-        bullet.remove();
-        clearInterval(move);
+      if (b.offsetTop > 420) {
+        b.remove();
+        clearInterval(loop);
       }
     }, 30);
   }, 1200);
 }
 
-// ======================
-// COLLISION
-// ======================
-function checkCollision(a, b) {
+function hit(a, b) {
   const r1 = a.getBoundingClientRect();
   const r2 = b.getBoundingClientRect();
-  return (
-    r1.left < r2.right &&
-    r1.right > r2.left &&
-    r1.top < r2.bottom &&
-    r1.bottom > r2.top
-  );
+  return r1.left < r2.right && r1.right > r2.left &&
+         r1.top < r2.bottom && r1.bottom > r2.top;
 }
 
-// ======================
-// PAUSE / END
-// ======================
-function pauseGame() {
+function pause() {
+  if (gameOver) return;
   paused = true;
-  endMessage.textContent = "PAUSED ⏸️";
-  endScreen.classList.remove("hidden");
+  pauseMenu.classList.remove("hidden");
 }
 
-function winGame() {
+function win() {
   gameOver = true;
   endMessage.textContent = "YOU WIN 🎉";
-  endScreen.classList.remove("hidden");
+  endMenu.classList.remove("hidden");
 }
 
-function loseGame() {
+function lose() {
   gameOver = true;
   endMessage.textContent = "GAME OVER 💀";
-  endScreen.classList.remove("hidden");
+  endMenu.classList.remove("hidden");
 }
 
-// ======================
-// BUTTONS
-// ======================
 resumeBtn.onclick = () => {
   paused = false;
-  endScreen.classList.add("hidden");
+  pauseMenu.classList.add("hidden");
+};
+
+charBackBtn.onclick = () => {
+  clearIntervals();
+  game.classList.add("hidden");
+  characters.classList.remove("hidden");
 };
 
 restartBtn.onclick = startGame;
 
-backBtn.onclick = () => {
+homeBtn.onclick = () => {
   clearIntervals();
   game.classList.add("hidden");
   home.classList.remove("hidden");
