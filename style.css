@@ -111,3 +111,10 @@ button {
   width: 80%;
   max-width: 260px;
 }
+
+#pauseBtn {
+  padding: 6px 10px;
+  font-size: 1rem;
+  border-radius: 8px;
+}
+ 
