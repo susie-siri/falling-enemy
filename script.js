@@ -1,11 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+  /* ---------- SCREENS ---------- */
   const screens = document.querySelectorAll(".screen");
   const home = document.querySelector(".home");
   const characters = document.querySelector(".characters");
   const themes = document.querySelector(".themes");
   const game = document.querySelector(".game");
 
+  /* ---------- BUTTONS ---------- */
   const playBtn = document.getElementById("playBtn");
   const cards = document.querySelectorAll(".card");
   const themeBtns = document.querySelectorAll(".themeBtn");
@@ -13,72 +15,109 @@ document.addEventListener("DOMContentLoaded", () => {
   const pauseBtn = document.getElementById("pauseBtn");
   const pauseMenu = document.getElementById("pauseMenu");
   const resumeBtn = document.getElementById("resumeBtn");
-  const backBtn = document.getElementById("backBtn");
 
-  const endMenu = document.getElementById("endMenu");
-  const endText = document.getElementById("endText");
+  const backBtn = document.getElementById("backBtn");
   const restartBtn = document.getElementById("restartBtn");
 
+  /* ---------- GAME OBJECTS ---------- */
   const gameArea = document.querySelector(".game-area");
   const player = document.getElementById("player");
   const enemy = document.getElementById("enemy");
   const goal = document.getElementById("goal");
 
+  const scoreText = document.getElementById("score");
+  const endMenu = document.getElementById("endMenu");
+  const endText = document.getElementById("endText");
+
+  /* ---------- GAME STATE ---------- */
   let x = 20, y = 360;
+  let ex = 200, ey = 60;
+  let dir = 1;
+  let score = 0;
   let paused = false;
   let gameOver = false;
-  let dir = 1;
-  let enemyLoop;
+  let enemyLoop = null;
+ let lives = 3;
+let canBeHit = true;
 
-  function show(screen) {
+
+  /* ---------- SCREEN SWITCH ---------- */
+  function showScreen(screen) {
     screens.forEach(s => s.classList.add("hidden"));
     screen.classList.remove("hidden");
   }
 
-  playBtn.onclick = () => show(characters);
+  /* ---------- FLOW ---------- */
+  playBtn.onclick = () => showScreen(characters);
 
   cards.forEach(card => {
     card.onclick = () => {
       player.src = card.src;
-      show(themes);
+      showScreen(themes);
     };
   });
 
   themeBtns.forEach(btn => {
     btn.onclick = () => {
-      gameArea.classList.remove("tech","forest","dungeon","space");
-      gameArea.classList.add(btn.dataset.theme);
-      show(game);
-      start();
+      gameArea.className = "game-area " + btn.dataset.theme;
+      showScreen(game);
+      startGame();
     };
   });
 
-  function start() {
-    paused = false;
+  /* ---------- START / RESTART ---------- */
+  function startGame() {
     gameOver = false;
-    pauseMenu.classList.add("hidden");
-    endMenu.classList.add("hidden");
+    paused = false;
+    dir = 1;
+    score = 0;
 
-    x = 20; y = 360;
+    scoreText.textContent = "Score: 0";
+
+ lives = 3;
+document.getElementById("lives").textContent = "❤️❤️❤️";
+canBeHit = true;
+
+    endMenu.classList.add("hidden");
+    pauseMenu.classList.add("hidden");
+
+    x = 20; 
+    y = 360;
+    ex = 200; 
+    ey = 60;
+
     player.style.left = x + "px";
     player.style.top = y + "px";
-
-    enemy.style.left = "200px";
-    enemy.style.top = "60px";
+    enemy.style.left = ex + "px";
+    enemy.style.top = ey + "px";
 
     clearInterval(enemyLoop);
     enemyLoop = setInterval(moveEnemy, 20);
   }
 
+  /* ---------- ENEMY MOVEMENT ---------- */
   function moveEnemy() {
-    if (paused || gameOver) return;
-    let ex = enemy.offsetLeft + dir * 2;
-    if (ex <= 0 || ex >= 285) dir *= -1;
-    enemy.style.left = ex + "px";
-  }
+  if (paused || gameOver) return;
 
+  // enemy follows player
+  if (ex < x) ex += 1.2;
+  if (ex > x) ex -= 1.2;
+  if (ey < y) ey += 1.2;
+  if (ey > y) ey -= 1.2;
+
+  enemy.style.left = ex + "px";
+  enemy.style.top = ey + "px";
+
+  // attack
+  if (hit(player, enemy) && canBeHit) {
+    takeDamage();
+  }
+}
+
+  /* ---------- PLAYER MOVEMENT ---------- */
   document.addEventListener("keydown", e => {
     if (paused || gameOver) return;
+
     if (e.key === "ArrowLeft") x -= 10;
     if (e.key === "ArrowRight") x += 10;
     if (e.key === "ArrowUp") y -= 10;
@@ -90,10 +129,10 @@ document.addEventListener("DOMContentLoaded", () => {
     player.style.left = x + "px";
     player.style.top = y + "px";
 
-    if (hit(player, goal)) end("YOU ESCAPED 🎉");
-    if (hit(player, enemy)) end("ENEMY GOT YOU 💀");
+    if (hit(player, goal)) win();
   });
 
+  /* ---------- COLLISION ---------- */
   function hit(a, b) {
     return (
       a.offsetLeft < b.offsetLeft + b.offsetWidth &&
@@ -103,13 +142,26 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   }
 
-  function end(text) {
+  /* ---------- GAME END ---------- */
+  function win() {
     gameOver = true;
-    endText.textContent = text;
+    score += 10;
+    scoreText.textContent = "Score: " + score;
+    endText.textContent = "YOU WIN 🎉";
     endMenu.classList.remove("hidden");
+    clearInterval(enemyLoop);
   }
 
+  function lose() {
+    gameOver = true;
+    endText.textContent = "GAME OVER 💀";
+    endMenu.classList.remove("hidden");
+    clearInterval(enemyLoop);
+  }
+
+  /* ---------- PAUSE ---------- */
   pauseBtn.onclick = () => {
+    if (gameOver) return;
     paused = true;
     pauseMenu.classList.remove("hidden");
   };
@@ -119,10 +171,59 @@ document.addEventListener("DOMContentLoaded", () => {
     pauseMenu.classList.add("hidden");
   };
 
+  /* ---------- END BUTTONS ---------- */
+  
+ function takeDamage() {
+  lives--;
+  canBeHit = false;
+
+  document.getElementById("lives").textContent = "❤️".repeat(lives);
+
+  // knockback effect
+  x -= 20;
+  y += 20;
+  player.style.left = x + "px";
+  player.style.top = y + "px";
+
+  if (lives <= 0) {
+    lose();
+  }
+
+  setTimeout(() => {
+    canBeHit = true;
+  }, 1000);
+}
+
+  restartBtn.onclick = startGame;
+
   backBtn.onclick = () => {
     clearInterval(enemyLoop);
-    show(characters);
+    showScreen(characters);
   };
+ 
+  const upBtn = document.getElementById("upBtn");
+const downBtn = document.getElementById("downBtn");
+const leftBtn = document.getElementById("leftBtn");
+const rightBtn = document.getElementById("rightBtn");
 
-  restartBtn.onclick = start;
+function movePlayer(dx, dy) {
+  if (paused || gameOver) return;
+
+  x += dx;
+  y += dy;
+
+  x = Math.max(0, Math.min(280, x));
+  y = Math.max(0, Math.min(380, y));
+
+  player.style.left = x + "px";
+  player.style.top = y + "px";
+
+  if (hit(player, goal)) win();
+}
+
+upBtn.addEventListener("touchstart", () => movePlayer(0, -10));
+downBtn.addEventListener("touchstart", () => movePlayer(0, 10));
+leftBtn.addEventListener("touchstart", () => movePlayer(-10, 0));
+rightBtn.addEventListener("touchstart", () => movePlayer(10, 0));
+ 
 });

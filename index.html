@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Maze Adventure</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<!-- HOME -->
 <div class="screen home">
   <h1>Maze Adventure</h1>
   <button id="playBtn">PLAY</button>
 </div>
 
+<!-- CHARACTERS -->
 <div class="screen characters hidden">
   <h2>Choose Character</h2>
   <div class="cards">
@@ -24,6 +26,7 @@
   </div>
 </div>
 
+<!-- THEMES -->
 <div class="screen themes hidden">
   <h2>Choose Theme</h2>
   <button class="themeBtn" data-theme="tech">🧠 Tech</button>
@@ -32,35 +35,43 @@
   <button class="themeBtn" data-theme="space">🚀 Space</button>
 </div>
 
+<!-- GAME -->
 <div class="screen game hidden">
   <div class="hud">
-    <span id="status">Reach the goal 🟨</span>
-    <button id="pauseBtn">⏸</button>
+  <span id="lives">❤️❤️❤️</span>
+  <span id="score">Score: 0</span>
+  <button id="pauseBtn">⏸</button>
+
+<div class="controls">
+  <button id="upBtn">⬆️</button>
+  <div>
+    <button id="leftBtn">⬅️</button>
+    <button id="downBtn">⬇️</button>
+    <button id="rightBtn">➡️</button>
   </div>
+</div>
+
+
 
   <div class="game-area">
     <img id="player">
-    <div id="enemy"></div>
+    <img id="enemy" src="images/enemy.png">
     <div id="goal"></div>
-
-    <div class="wall" style="left:0;top:0;width:320px;height:15px;"></div>
-    <div class="wall" style="left:0;top:0;width:15px;height:420px;"></div>
-    <div class="wall" style="left:305px;top:0;width:15px;height:420px;"></div>
-    <div class="wall" style="left:0;top:405px;width:320px;height:15px;"></div>
   </div>
+<div id="pauseMenu" class="overlay hidden">
+  <h2>Paused</h2>
+  <button id="resumeBtn">Resume</button>
+</div>
 
-  <div id="pauseMenu" class="overlay hidden">
-    <h2>Paused</h2>
-    <button id="resumeBtn">Resume</button>
-    <button id="backBtn">Back</button>
-  </div>
 
   <div id="endMenu" class="overlay hidden">
-    <h2 id="endText"></h2>
-    <button id="restartBtn">Restart</button>
-  </div>
+  <h2 id="endText"></h2>
+  <button id="restartBtn">Restart</button>
+  <button id="backBtn">Back</button>
 </div>
+
 
 <script src="script.js"></script>
 </body>
 </html>
+ 
